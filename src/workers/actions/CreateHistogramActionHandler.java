@@ -35,7 +35,7 @@ public class CreateHistogramActionHandler extends SuperUserInteractionHandler {
 			}
 			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("./histogram.txt"), "UTF-8"));
 			for (Entry e : histogram.entrySet()) {
-				writer.write(e.getKey() + ":" + e.getValue() + "\n");
+				writer.write(e.getKey() + "_" + e.getValue() + "\n");
 			}
 			writer.close();
 			showInfoDialog("Success!", "./histogram.txt has been created!");

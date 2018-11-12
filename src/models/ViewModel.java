@@ -2,7 +2,6 @@ package models;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.image.MemoryImageSource;
 import java.io.File;
 import java.util.ArrayList;
@@ -46,6 +45,7 @@ public class ViewModel {
 	
 	private Color firstColor, secondColor;
 	private Point drawingStartPoint, drawingEndPoint;
+	
 	
 	public ViewModel(String guiTitle, int guiWidth, int guiHeight) {
 		this.guiTitle = guiTitle;
