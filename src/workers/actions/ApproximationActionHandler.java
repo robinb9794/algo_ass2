@@ -1,5 +1,6 @@
 package workers.actions;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Collections;
@@ -14,6 +15,7 @@ import models.ApproximationModel;
 import models.Mode;
 import models.approximation.HistogramColor;
 import workers.CompareManager;
+import workers.PixelCoordinator;
 import workers.SuperUserInteractionHandler;
 
 public class ApproximationActionHandler extends SuperUserInteractionHandler{
@@ -87,6 +89,21 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		for(int i = 0; i < numberOfColorsToReplace; i++) {
 			colorsToBeReplaced[i] = colorsSortedByNumber.get(i);
 		}
-		System.out.println(percent);
+		findNewPixels(colorsToBeReplaced);
+		System.out.println("jo");
+	}
+	
+	private static void findNewPixels(HistogramColor[] colorsToBeReplaced) {
+		Vector<HistogramColor> colorsSortedByNumber = approximationModel.getColorsSortedBy("Number");
+		final int LIMIT = colorsSortedByNumber.size() - colorsToBeReplaced.length;
+		for(int i = 0; i < colorsToBeReplaced.length; i++) {
+			HistogramColor colorToBeReplaced = colorsToBeReplaced[i];
+			final int OLD_RED = colorToBeReplaced.getRed();
+			final int OLD_GREEN = colorToBeReplaced.getGreen();
+			final int OLD_BLUE = colorToBeReplaced.getBlue();
+			for(int j = 0; j < LIMIT; j++) {
+				
+			}
+		}
 	}
 }

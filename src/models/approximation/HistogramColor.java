@@ -1,5 +1,7 @@
 package models.approximation;
 
+import java.awt.Color;
+
 public class HistogramColor  {
 	private int red, green, blue, number;
 	
@@ -24,5 +26,9 @@ public class HistogramColor  {
 	
 	public Integer getNumber() {
 		return this.number;
+	}
+	
+	public int toRGB() {
+		return new Color(red, green, blue).getRGB();
 	}
 }
