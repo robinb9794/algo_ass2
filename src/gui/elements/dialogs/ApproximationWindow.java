@@ -34,7 +34,7 @@ public class ApproximationWindow extends JDialog{
 		this.screen = new ApproximationScreen(viewModel);
 		add(BorderLayout.CENTER, screen);
 		
-		this.slider = new JSlider(JSlider.HORIZONTAL, 0, 100, 100);
+		this.slider = new JSlider(JSlider.HORIZONTAL, 1, 100, 100);
 		slider.setMajorTickSpacing(10);
 		slider.setMinorTickSpacing(5);
 		slider.setPaintTicks(true);

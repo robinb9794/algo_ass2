@@ -31,4 +31,10 @@ public class HistogramColor  {
 	public int toRGB() {
 		return new Color(red, green, blue).getRGB();
 	}
+	
+	public void setColorValues(Color color) {
+		this.red = color.getRed();
+		this.green = color.getGreen();
+		this.blue = color.getBlue();
+	}
 }

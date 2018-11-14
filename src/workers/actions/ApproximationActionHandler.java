@@ -13,6 +13,7 @@ import javax.swing.event.ChangeListener;
 import gui.elements.dialogs.ApproximationWindow;
 import models.ApproximationModel;
 import models.Mode;
+import models.approximation.ApproximationPoint;
 import models.approximation.HistogramColor;
 import workers.CompareManager;
 import workers.PixelCoordinator;
@@ -56,10 +57,25 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 	}
 	
 	private static void sortHistogramColors() {
-		Comparator<HistogramColor> numberComparator = CompareManager.getNumberComparator();
-		Vector<HistogramColor> colorsSortedByNumber = approximationModel.getHistogramColors();
-		Collections.sort(colorsSortedByNumber, numberComparator);
-		approximationModel.setColorsSortedByNumber(colorsSortedByNumber);
+		Comparator<HistogramColor> comparator = CompareManager.getNumberComparator();
+		Vector<HistogramColor> valuesToSort = approximationModel.getHistogramColors();
+		Collections.sort(valuesToSort, comparator);
+		approximationModel.setColorsSortedByNumber(valuesToSort);
+		
+		comparator = CompareManager.getRedComparator();
+		valuesToSort = approximationModel.getColorsSortedBy("Red");
+		Collections.sort(valuesToSort, comparator);
+		approximationModel.setColorsSortedByRed(valuesToSort);
+		
+		comparator = CompareManager.getGreenComparator();
+		valuesToSort = approximationModel.getColorsSortedBy("Green");
+		Collections.sort(valuesToSort, comparator);
+		approximationModel.setColorsSortedByGreen(valuesToSort);
+		
+		comparator = CompareManager.getBlueComparator();
+		valuesToSort = approximationModel.getColorsSortedBy("Blue");
+		Collections.sort(valuesToSort, comparator);
+		approximationModel.setColorsSortedByBlue(valuesToSort);
 	}
 	
 	private static void initDialog() {
@@ -75,33 +91,63 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		approximationWindow.slider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				int percent = approximationWindow.slider.getValue();
-				startApproximation(percent);
+				double reductionFactor = approximationWindow.slider.getValue() / 100;;
+				startApproximation(reductionFactor);
 				approximationWindow.screen.repaint();
 			}			
 		});
 	}
 	
-	private static void startApproximation(int percent) {
-		int numberOfColorsToReplace = approximationModel.getHistogramColors().size() / 100 * percent;
-		HistogramColor[] colorsToBeReplaced = new HistogramColor[numberOfColorsToReplace];
+	private static void startApproximation(double reductionFactor) {
+		int numberOfColorsToReplace = (int) Math.round(approximationModel.getHistogramColors().size() * reductionFactor);
 		Vector<HistogramColor> colorsSortedByNumber = approximationModel.getColorsSortedBy("Number");
 		for(int i = 0; i < numberOfColorsToReplace; i++) {
-			colorsToBeReplaced[i] = colorsSortedByNumber.get(i);
+			HistogramColor colorSortedByNumber = colorsSortedByNumber.get(i);
+			ApproximationPoint pointToApproximate = new ApproximationPoint(colorSortedByNumber.getRed(), colorSortedByNumber.getGreen(), colorSortedByNumber.getBlue());
+			ApproximationPoint approximatedPoint = getApproximatedPoint(pointToApproximate);
+			Color approximatedColors = new Color(approximatedPoint.getX(), approximatedPoint.getY(), approximatedPoint.getZ());
+			colorSortedByNumber.setColorValues(approximatedColors);
 		}
-		findNewPixels(colorsToBeReplaced);
-		System.out.println("jo");
+		setReducedPixels(colorsSortedByNumber);
 	}
 	
-	private static void findNewPixels(HistogramColor[] colorsToBeReplaced) {
-		Vector<HistogramColor> colorsSortedByNumber = approximationModel.getColorsSortedBy("Number");
-		final int LIMIT = colorsSortedByNumber.size() - colorsToBeReplaced.length;
-		for(int i = 0; i < colorsToBeReplaced.length; i++) {
-			HistogramColor colorToBeReplaced = colorsToBeReplaced[i];
-			final int OLD_RED = colorToBeReplaced.getRed();
-			final int OLD_GREEN = colorToBeReplaced.getGreen();
-			final int OLD_BLUE = colorToBeReplaced.getBlue();
-			for(int j = 0; j < LIMIT; j++) {
+	private static ApproximationPoint getApproximatedPoint(ApproximationPoint pointToApproximate) {
+		double rangeX, rangeY, rangeZ;
+		int[] colorsSortedByRed = new int[approximationModel.getColorsSortedBy("Red").size()];
+		for(int i = 0; i < colorsSortedByRed.length; i++) {
+			colorsSortedByRed[i] = approximationModel.getSingleColorSortedBy("Red", i).getRed();
+		}
+		int middleX = binarySearch(colorsSortedByRed, pointToApproximate.getX(), 0, colorsSortedByRed.length - 1);
+		
+		if(!approximationModel.valueWasFound()) {
+			if(pointToApproximate.getX() < colorsSortedByRed[middleX]) {
+				
+			}
+		}
+	}
+	
+	private static int binarySearch(int[] values, int searched, int leftEdge, int rightEdge) {
+		int iL = leftEdge;
+		int iR = rightEdge;
+		int middle = 0;
+		while(iL <= iR) {
+			middle = (iL + iR) / 2;
+			final int RES = Integer.compare(values[middle], searched);
+			if(RES == 0) {
+				approximationModel.setValueWasFound(true);
+				return middle;
+			}else if(RES < 0)
+				iL = middle + 1;
+			else
+				iR = middle - 1;
+		}
+		approximationModel.setValueWasFound(false);
+		return middle;
+	}
+	
+	private static void setReducedPixels(Vector<HistogramColor> colorsSortedByNumber) {
+		for(int i = 0; i < colorsSortedByNumber.size(); i++) {
+			for(int j = 0; j < colorsSortedByNumber.get(i).getNumber(); j++) {
 				
 			}
 		}
