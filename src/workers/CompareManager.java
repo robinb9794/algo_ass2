@@ -9,7 +9,7 @@ public class CompareManager {
 		return new Comparator<HistogramColor>() {
 			@Override
 			public int compare(HistogramColor color1, HistogramColor color2) {
-				return color2.getNumber().compareTo(color1.getNumber());
+				return color2.getColorOccurence().getNumber().compareTo(color1.getColorOccurence().getNumber());
 			}			
 		};
 	}

@@ -3,13 +3,14 @@ package models.approximation;
 import java.awt.Color;
 
 public class HistogramColor  {
-	private int red, green, blue, number;
+	private int red, green, blue;
+	private ColorOccurence colorOccurence;
 	
-	public HistogramColor(int red, int green, int blue, int number) {
+	public HistogramColor(int red, int green, int blue, ColorOccurence colorOccurence) {
 		this.red = red;
 		this.green = green;
 		this.blue = blue;
-		this.number = number;
+		this.colorOccurence = colorOccurence;
 	}
 	
 	public Integer getRed() {
@@ -24,8 +25,8 @@ public class HistogramColor  {
 		return this.blue;
 	}
 	
-	public Integer getNumber() {
-		return this.number;
+	public ColorOccurence getColorOccurence() {
+		return this.colorOccurence;
 	}
 	
 	public int toRGB() {

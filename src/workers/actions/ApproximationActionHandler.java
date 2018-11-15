@@ -14,9 +14,9 @@ import gui.elements.dialogs.ApproximationWindow;
 import models.ApproximationModel;
 import models.Mode;
 import models.approximation.ApproximationPoint;
+import models.approximation.ColorOccurence;
 import models.approximation.HistogramColor;
 import workers.CompareManager;
-import workers.PixelCoordinator;
 import workers.SuperUserInteractionHandler;
 
 public class ApproximationActionHandler extends SuperUserInteractionHandler{
@@ -42,12 +42,16 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 			BufferedReader fileReader = new BufferedReader(new FileReader("./histogram.txt"));
 			String line;
 			while((line = fileReader.readLine()) != null) {
-				String[] values = line.split("_");
+				String[] values = line.split(",");
 				int red = Integer.parseInt(values[0]);
 				int green = Integer.parseInt(values[1]);
 				int blue = Integer.parseInt(values[2]);
 				int number = Integer.parseInt(values[3]);
-				HistogramColor histogramColor = new HistogramColor(red, green, blue, number);
+				Vector<Integer> indices = new Vector<Integer>();
+				for(int i = 4; i < values.length; i++)
+					indices.add(Integer.parseInt(values[i]));
+				ColorOccurence colorOccurence = new ColorOccurence(number, indices);
+				HistogramColor histogramColor = new HistogramColor(red, green, blue, colorOccurence);
 				approximationModel.addHistogramColor(histogramColor);
 			}
 			fileReader.close();
@@ -124,6 +128,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 				
 			}
 		}
+		return null;
 	}
 	
 	private static int binarySearch(int[] values, int searched, int leftEdge, int rightEdge) {
@@ -147,8 +152,8 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 	
 	private static void setReducedPixels(Vector<HistogramColor> colorsSortedByNumber) {
 		for(int i = 0; i < colorsSortedByNumber.size(); i++) {
-			for(int j = 0; j < colorsSortedByNumber.get(i).getNumber(); j++) {
-				
+			for(int j = 0; j < colorsSortedByNumber.get(i).getColorOccurence().getIndices().size(); j++) {
+				int index = colorsSortedByNumber.get(i).getColorOccurence().getIndices().get(j);
 			}
 		}
 	}

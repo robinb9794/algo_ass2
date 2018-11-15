@@ -97,4 +97,16 @@ public class PixelCoordinator {
 	public static int getPixelIndex(int i, int j) {
 		return j * viewModel.getScreenWidth() + i;
 	}
+	
+	public static int getRedPart(int pixel) {
+		return (pixel << 16) & 255;
+	}
+	
+	public static int getGreenPart(int pixel) {
+		return (pixel << 8) & 255;
+	}
+	
+	public static int getBluePart(int pixel) {
+		return pixel & 255;
+	}
 }
