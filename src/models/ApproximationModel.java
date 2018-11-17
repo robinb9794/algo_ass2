@@ -2,35 +2,35 @@ package models;
 
 import java.util.Vector;
 
-import models.approximation.HistogramColor;
+import models.approximation.ApproximationPoint;
 
 public class ApproximationModel {
-	private Vector<HistogramColor> histogramColors;
-	private Vector<HistogramColor> colorsSortedByNumber;
-	private Vector<HistogramColor> colorsSortedByRed;
-	private Vector<HistogramColor> colorsSortedByGreen;
-	private Vector<HistogramColor> colorsSortedByBlue;
+	private Vector<ApproximationPoint> histogramColors;
+	private Vector<ApproximationPoint> colorsSortedByNumber;
+	private Vector<ApproximationPoint> colorsSortedByRed;
+	private Vector<ApproximationPoint> colorsSortedByGreen;
+	private Vector<ApproximationPoint> colorsSortedByBlue;
 	
 	private boolean foundValue;
 	
 	public ApproximationModel() {
-		this.histogramColors = new Vector<HistogramColor>();
-		this.colorsSortedByNumber = new Vector<HistogramColor>();
-		this.colorsSortedByRed = new Vector<HistogramColor>();
-		this.colorsSortedByGreen = new Vector<HistogramColor>();
-		this.colorsSortedByBlue = new Vector<HistogramColor>();
+		this.histogramColors = new Vector<ApproximationPoint>();
+		this.colorsSortedByNumber = new Vector<ApproximationPoint>();
+		this.colorsSortedByRed = new Vector<ApproximationPoint>();
+		this.colorsSortedByGreen = new Vector<ApproximationPoint>();
+		this.colorsSortedByBlue = new Vector<ApproximationPoint>();
 		this.foundValue = false;
 	}
 	
-	public Vector<HistogramColor> getHistogramColors(){
+	public Vector<ApproximationPoint> getHistogramColors(){
 		return this.histogramColors;
 	}
 	
-	public void addHistogramColor(HistogramColor histogramColor) {
+	public void addHistogramColor(ApproximationPoint histogramColor) {
 		this.histogramColors.addElement(histogramColor);
 	}
 	
-	public Vector<HistogramColor> getColorsSortedBy(String sortedBy){
+	public Vector<ApproximationPoint> getColorsSortedBy(String sortedBy){
 		switch(sortedBy) {
 		case "Number":
 			return this.colorsSortedByNumber;
@@ -44,33 +44,33 @@ public class ApproximationModel {
 		return null;
 	}
 	
-	public HistogramColor getSingleColorSortedBy(String sortedBy, int index){
+	public ApproximationPoint getSingleColorSortedBy(String sortedBy, int index){
 		switch(sortedBy) {
 		case "Number":
-			return this.colorsSortedByNumber.get(index);
+			return this.colorsSortedByNumber.elementAt(index);
 		case "Red":
-			return this.colorsSortedByRed.get(index);
+			return this.colorsSortedByRed.elementAt(index);
 		case "Green":
-			return this.colorsSortedByGreen.get(index);
+			return this.colorsSortedByGreen.elementAt(index);
 		case "Blue":
-			return this.colorsSortedByBlue.get(index);
+			return this.colorsSortedByBlue.elementAt(index);
 		}
 		return null;
 	}
 	
-	public void setColorsSortedByNumber(Vector<HistogramColor> colorsSortedByNumber) {
+	public void setColorsSortedByNumber(Vector<ApproximationPoint> colorsSortedByNumber) {
 		this.colorsSortedByNumber = colorsSortedByNumber;
 	}
 	
-	public void setColorsSortedByRed(Vector<HistogramColor> colorsSortedByRed) {
+	public void setColorsSortedByRed(Vector<ApproximationPoint> colorsSortedByRed) {
 		this.colorsSortedByRed = colorsSortedByRed;
 	}
 	
-	public void setColorsSortedByGreen(Vector<HistogramColor> colorsSortedByGreen) {
+	public void setColorsSortedByGreen(Vector<ApproximationPoint> colorsSortedByGreen) {
 		this.colorsSortedByGreen = colorsSortedByGreen;
 	}
 	
-	public void setColorsSortedByBlue(Vector<HistogramColor> colorsSortedByBlue) {
+	public void setColorsSortedByBlue(Vector<ApproximationPoint> colorsSortedByBlue) {
 		this.colorsSortedByBlue = colorsSortedByBlue;
 	}
 	

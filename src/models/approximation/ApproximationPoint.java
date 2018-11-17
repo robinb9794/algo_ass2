@@ -1,27 +1,65 @@
 package models.approximation;
 
-public class ApproximationPoint {
-	private int x, y, z;
+import java.awt.Color;
+
+public class ApproximationPoint  {
+	private int red, green, blue;
+	private ColorOccurence colorOccurence;
 	
-	public ApproximationPoint(int x, int y, int z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
+	public ApproximationPoint() {}
+	
+	public ApproximationPoint(int red, int green, int blue) {
+		this.red = red;
+		this.green = green;
+		this.blue = blue;
 	}
 	
-	public int getX() {
-		return this.x;
+	public ApproximationPoint(int red, int green, int blue, ColorOccurence colorOccurence) {
+		this.red = red;
+		this.green = green;
+		this.blue = blue;
+		this.colorOccurence = colorOccurence;
 	}
 	
-	public int getY() {
-		return this.y;
+	public Integer getRed() {
+		return this.red;
 	}
 	
-	public int getZ() {
-		return this.z;
+	public void setRed(int red) {
+		this.red = red;
+	}
+	
+	public Integer getGreen() {
+		return this.green;
+	}
+	
+	public void setGreen(int green) {
+		this.green = green;
+	}
+	
+	public Integer getBlue() {
+		return this.blue;
+	}
+	
+	public void setBlue(int blue) {
+		this.blue = blue;
+	}
+	
+	public ColorOccurence getColorOccurence() {
+		return this.colorOccurence;
+	}
+	
+	public int toRGB() {
+		return new Color(red, green, blue).getRGB();
+	}
+	
+	public void setColorValues(Color color) {
+		this.red = color.getRed();
+		this.green = color.getGreen();
+		this.blue = color.getBlue();
 	}
 	
 	public double distance(ApproximationPoint p) {
-		return Math.abs(Math.sqrt(Math.pow(Math.abs(x - p.getX()), 2) + Math.pow(Math.abs(y - p.getY()), 2) + Math.pow(Math.abs(z - p.getZ()), 2)));
+		return Math.abs(Math.sqrt(Math.pow(Math.abs(red - p.getRed()), 2) + Math.pow(Math.abs(green - p.getGreen()), 2) + Math.pow(Math.abs(blue - p.getBlue()), 2)));
 	}
 }

@@ -1,11 +1,16 @@
 package gui.elements.dialogs;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JSlider;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import gui.elements.ApproximationScreen;
 import models.ViewModel;
@@ -14,7 +19,8 @@ public class ApproximationWindow extends JDialog{
 	private ViewModel viewModel;
 	
 	public ApproximationScreen screen;
-	public JSlider slider;
+	public JTextField textField;
+	public JButton approximateButton;
 	
 	public ApproximationWindow(ViewModel viewModel) {
 		this.viewModel = viewModel;
@@ -30,15 +36,21 @@ public class ApproximationWindow extends JDialog{
 		});
 	}
 	
-	public void initScreenAndSlider() {
+	public void initElements() {
 		this.screen = new ApproximationScreen(viewModel);
-		add(BorderLayout.CENTER, screen);
+		add(BorderLayout.CENTER, screen);;
 		
-		this.slider = new JSlider(JSlider.HORIZONTAL, 1, 100, 100);
-		slider.setMajorTickSpacing(10);
-		slider.setMinorTickSpacing(5);
-		slider.setPaintTicks(true);
-		slider.setPaintLabels(true);
-		add(BorderLayout.SOUTH, slider);
+		JPanel panel = new JPanel(new FlowLayout());
+		
+		panel.add(new JLabel("Please enter valid percentage: "));
+		
+		this.textField = new JTextField();
+		textField.setPreferredSize(new Dimension(50, 25));
+		panel.add(textField);
+		
+		this.approximateButton = new JButton("Approximate");
+		panel.add(approximateButton);
+		
+		add(BorderLayout.SOUTH, panel);
 	}
 }

@@ -2,41 +2,41 @@ package workers;
 
 import java.util.Comparator;
 
-import models.approximation.HistogramColor;
+import models.approximation.ApproximationPoint;
 
 public class CompareManager {
-	public static Comparator<HistogramColor> getNumberComparator(){
-		return new Comparator<HistogramColor>() {
+	public static Comparator<ApproximationPoint> getNumberComparator(){
+		return new Comparator<ApproximationPoint>() {
 			@Override
-			public int compare(HistogramColor color1, HistogramColor color2) {
-				return color2.getColorOccurence().getNumber().compareTo(color1.getColorOccurence().getNumber());
+			public int compare(ApproximationPoint color1, ApproximationPoint color2) {
+				return color1.getColorOccurence().getNumber().compareTo(color2.getColorOccurence().getNumber());
 			}			
 		};
 	}
 	
-	public static Comparator<HistogramColor> getRedComparator(){
-		return new Comparator<HistogramColor>() {
+	public static Comparator<ApproximationPoint> getRedComparator(){
+		return new Comparator<ApproximationPoint>() {
 			@Override
-			public int compare(HistogramColor color1, HistogramColor color2) {
-				return color2.getRed().compareTo(color1.getRed());
+			public int compare(ApproximationPoint color1, ApproximationPoint color2) {
+				return color1.getRed().compareTo(color2.getRed());
 			}
 		};
 	}
 	
-	public static Comparator<HistogramColor> getGreenComparator(){
-		return new Comparator<HistogramColor>() {
+	public static Comparator<ApproximationPoint> getGreenComparator(){
+		return new Comparator<ApproximationPoint>() {
 			@Override
-			public int compare(HistogramColor color1, HistogramColor color2) {
-				return color2.getGreen().compareTo(color1.getGreen());
+			public int compare(ApproximationPoint color1, ApproximationPoint color2) {
+				return color1.getGreen().compareTo(color2.getGreen());
 			}
 		};
 	}
 	
-	public static Comparator<HistogramColor> getBlueComparator(){
-		return new Comparator<HistogramColor>() {
+	public static Comparator<ApproximationPoint> getBlueComparator(){
+		return new Comparator<ApproximationPoint>() {
 			@Override
-			public int compare(HistogramColor color1, HistogramColor color2) {
-				return color2.getBlue().compareTo(color1.getBlue());
+			public int compare(ApproximationPoint color1, ApproximationPoint color2) {
+				return color1.getBlue().compareTo(color2.getBlue());
 			}
 		};
 	}
