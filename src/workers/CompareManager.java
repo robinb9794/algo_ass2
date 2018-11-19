@@ -18,7 +18,14 @@ public class CompareManager {
 		return new Comparator<ApproximationPoint>() {
 			@Override
 			public int compare(ApproximationPoint color1, ApproximationPoint color2) {
-				return color1.getRed().compareTo(color2.getRed());
+				int result =  color1.getRed().compareTo(color2.getRed());
+				if(result == 0) {
+					result =  color1.getGreen().compareTo(color2.getGreen());
+					if(result == 0) {
+						result =  color1.getBlue().compareTo(color2.getBlue());
+					}
+				}
+				return result;
 			}
 		};
 	}
@@ -27,7 +34,14 @@ public class CompareManager {
 		return new Comparator<ApproximationPoint>() {
 			@Override
 			public int compare(ApproximationPoint color1, ApproximationPoint color2) {
-				return color1.getGreen().compareTo(color2.getGreen());
+				int result = color1.getGreen().compareTo(color2.getGreen());
+				if(result == 0) {
+					result =  color1.getRed().compareTo(color2.getRed());
+					if(result == 0) {
+						result =  color1.getBlue().compareTo(color2.getBlue());
+					}
+				}
+				return result;
 			}
 		};
 	}
@@ -36,7 +50,14 @@ public class CompareManager {
 		return new Comparator<ApproximationPoint>() {
 			@Override
 			public int compare(ApproximationPoint color1, ApproximationPoint color2) {
-				return color1.getBlue().compareTo(color2.getBlue());
+				int result = color1.getBlue().compareTo(color2.getBlue());
+				if(result == 0) {
+					result =  color1.getRed().compareTo(color2.getRed());
+					if(result == 0) {
+						result =  color1.getGreen().compareTo(color2.getGreen());
+					}
+				}
+				return result;
 			}
 		};
 	}

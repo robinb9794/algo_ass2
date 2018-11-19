@@ -14,6 +14,7 @@ import models.ApproximationModel;
 import models.Mode;
 import models.approximation.ApproximationPoint;
 import models.approximation.ColorOccurence;
+import models.approximation.ProjectionResult;
 import workers.CompareManager;
 import workers.PixelCoordinator;
 import workers.SuperUserInteractionHandler;
@@ -118,7 +119,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 	
 	private static void startApproximation(double reductionFactor) {
 		int numberOfAllHistogramColors = approximationModel.getHistogramColors().size();
-		int numberOfColorsToReplace = (int) Math.round(numberOfAllHistogramColors - numberOfAllHistogramColors * reductionFactor);
+		int numberOfColorsToReplace = (int) Math.round(numberOfAllHistogramColors - (numberOfAllHistogramColors * reductionFactor));
 		final int CUT = numberOfAllHistogramColors - numberOfColorsToReplace;
 		Vector<ApproximationPoint> colorsSortedByNumber = approximationModel.getColorsSortedBy("Number");
 		ApproximationPoint colorSortedByNumber, pointToApproximate, approximatedPoint;
@@ -126,195 +127,154 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		for(int i = 0; i < numberOfColorsToReplace; i++) {
 			colorSortedByNumber = colorsSortedByNumber.elementAt(i);
 			pointToApproximate = new ApproximationPoint(colorSortedByNumber.getRed(), colorSortedByNumber.getGreen(), colorSortedByNumber.getBlue());
-			approximatedPoint = getApproximatedPoint(CUT, pointToApproximate);
+			approximatedPoint = getApproximatedPoint(numberOfAllHistogramColors, CUT, pointToApproximate);
 			approximatedColors = new Color(approximatedPoint.getRed(), approximatedPoint.getGreen(), approximatedPoint.getBlue());
 			colorSortedByNumber.setColorValues(approximatedColors);
 		}
 		setReducedPixels(colorsSortedByNumber);
 	}
 	
-	private static ApproximationPoint getApproximatedPoint(int CUT, ApproximationPoint pointToApproximate) {
-		double rangeRed, rangeGreen, rangeBlue;
-		int[] colorsSortedByRed = new int[approximationModel.getColorsSortedBy("Red").size()];
-		for(int i = 0; i < colorsSortedByRed.length; i++) {
-			colorsSortedByRed[i] = approximationModel.getSingleColorSortedBy("Red", i).getRed();
-		}
-		int middleRed = binarySearch(colorsSortedByRed, pointToApproximate.getRed(), CUT, colorsSortedByRed.length - 1);
+	private static ApproximationPoint getApproximatedPoint(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
+		ProjectionResult redProjection = getRedRange(numberOfAllHistogramColors, CUT, pointToApproximate);
+		ProjectionResult greenProjection = getGreenRange(numberOfAllHistogramColors, CUT, pointToApproximate);
+		ProjectionResult blueProjection = getBlueRange(numberOfAllHistogramColors, CUT, pointToApproximate);
 		
-		double distanceLeft, distanceRight;
-		if(!searchedValueIsAvailableInQuantity()) {
-			if(pointToApproximate.getRed() < colorsSortedByRed[middleRed]) {
-				distanceRight = approximationModel.getSingleColorSortedBy("Red", middleRed - 1).distance(pointToApproximate);
-				if(middleRed > 0) {
-					distanceLeft = approximationModel.getSingleColorSortedBy("Red", middleRed - 1).distance(pointToApproximate);
-					if(distanceLeft <= distanceRight) {
-						rangeRed = distanceLeft;
-						middleRed -= 1;
-					}else
-						rangeRed = distanceRight;
-				}
-				else
-					rangeRed = distanceRight;
-			}else {
-				distanceLeft = approximationModel.getSingleColorSortedBy("Red", middleRed).distance(pointToApproximate);
-				if(middleRed < colorsSortedByRed.length - 1) {
-					distanceRight = approximationModel.getSingleColorSortedBy("Red", middleRed + 1).distance(pointToApproximate);
-					if(distanceLeft <= distanceRight)
-						rangeRed = distanceLeft;
-					else {
-						rangeRed = distanceRight;
-						middleRed += 1;
-					}
-				}else
-					rangeRed = distanceLeft;
-			}
-		}else
-			rangeRed = approximationModel.getSingleColorSortedBy("Red", middleRed).distance(pointToApproximate);
-		
-		int[] colorsSortedByGreen = new int[approximationModel.getColorsSortedBy("Green").size()];
-		for(int i = 0; i < colorsSortedByGreen.length; i++) {
-			colorsSortedByGreen[i] = approximationModel.getSingleColorSortedBy("Green", i).getGreen();
-		}
-		int middleGreen = binarySearch(colorsSortedByGreen, pointToApproximate.getGreen(), CUT, colorsSortedByGreen.length - 1);
-		
-		if(!searchedValueIsAvailableInQuantity()) {
-			if(pointToApproximate.getGreen() < colorsSortedByGreen[middleGreen]) {
-				distanceRight = approximationModel.getSingleColorSortedBy("Green", middleGreen - 1).distance(pointToApproximate);
-				if(middleGreen > 0) {
-					distanceLeft = approximationModel.getSingleColorSortedBy("Green", middleGreen - 1).distance(pointToApproximate);
-					if(distanceLeft <= distanceRight) {
-						rangeGreen = distanceLeft;
-						middleGreen -= 1;
-					}else
-						rangeGreen = distanceRight;
-				}
-				else
-					rangeGreen = distanceRight;
-			}else {
-				distanceLeft = approximationModel.getSingleColorSortedBy("Green", middleGreen).distance(pointToApproximate);
-				if(middleGreen < colorsSortedByGreen.length - 1) {
-					distanceRight = approximationModel.getSingleColorSortedBy("Green", middleGreen + 1).distance(pointToApproximate);
-					if(distanceLeft <= distanceRight)
-						rangeGreen = distanceLeft;
-					else {
-						rangeGreen = distanceRight;
-						middleGreen += 1;
-					}
-				}else
-					rangeGreen = distanceLeft;
-			}
-		}else
-			rangeGreen = approximationModel.getSingleColorSortedBy("Green", middleGreen).distance(pointToApproximate);
-		
-		int[] colorsSortedByBlue = new int[approximationModel.getColorsSortedBy("Blue").size()];
-		for(int i = 0; i < colorsSortedByBlue.length; i++) {
-			colorsSortedByBlue[i] = approximationModel.getSingleColorSortedBy("Blue", i).getBlue();
-		}
-		int middleBlue = binarySearch(colorsSortedByBlue, pointToApproximate.getBlue(), CUT, colorsSortedByBlue.length - 1);
-		
-		if(!searchedValueIsAvailableInQuantity()) {
-			if(pointToApproximate.getBlue() < colorsSortedByBlue[middleBlue]) {
-				distanceRight = approximationModel.getSingleColorSortedBy("Blue", middleBlue - 1).distance(pointToApproximate);
-				if(middleBlue > 0) {
-					distanceLeft = approximationModel.getSingleColorSortedBy("Blue", middleBlue - 1).distance(pointToApproximate);
-					if(distanceLeft <= distanceRight) {
-						rangeBlue = distanceLeft;
-						middleBlue -= 1;
-					}else
-						rangeBlue = distanceRight;
-				}
-				else
-					rangeBlue = distanceRight;
-			}else {
-				distanceLeft = approximationModel.getSingleColorSortedBy("Blue", middleBlue).distance(pointToApproximate);
-				if(middleBlue < colorsSortedByBlue.length - 1) {
-					distanceRight = approximationModel.getSingleColorSortedBy("Blue", middleBlue + 1).distance(pointToApproximate);
-					if(distanceLeft <= distanceRight)
-						rangeBlue = distanceLeft;
-					else {
-						rangeBlue = distanceRight;
-						middleBlue += 1;
-					}
-				}else
-					rangeBlue = distanceLeft;
-			}
-		}else
-			rangeBlue = approximationModel.getSingleColorSortedBy("Blue", middleBlue).distance(pointToApproximate);
-		
-		double startRange = 0;
-		ApproximationPoint nearestPoint = new ApproximationPoint();
-		
-		if(rangeRed < rangeGreen) {
-			startRange = rangeRed;
-			nearestPoint.setRed(approximationModel.getSingleColorSortedBy("Red", middleRed).getRed());
-			nearestPoint.setGreen(approximationModel.getSingleColorSortedBy("Red", middleRed).getGreen());
-			nearestPoint.setRed(approximationModel.getSingleColorSortedBy("Red", middleRed).getBlue());
-		}else {
-			startRange = rangeGreen;
-			nearestPoint.setRed(approximationModel.getSingleColorSortedBy("Green", middleGreen).getRed());
-			nearestPoint.setGreen(approximationModel.getSingleColorSortedBy("Green", middleGreen).getGreen());
-			nearestPoint.setRed(approximationModel.getSingleColorSortedBy("Green", middleGreen).getBlue());
-		}
-		if(rangeBlue < startRange) {
-			startRange = rangeBlue;
-			nearestPoint.setRed(approximationModel.getSingleColorSortedBy("Blue", middleBlue).getRed());
-			nearestPoint.setGreen(approximationModel.getSingleColorSortedBy("Blue", middleBlue).getGreen());
-			nearestPoint.setRed(approximationModel.getSingleColorSortedBy("Blue", middleBlue).getBlue());
-		}
-		
-		double shortestRange = startRange;
-		double distRed = shortestRange;
-		
-		for(int i = 1; (middleRed + i) < approximationModel.getColorsSortedBy("Red").size(); i++) {
-			if(approximationModel.getSingleColorSortedBy("Red", middleRed + i).getRed() <= (pointToApproximate.getRed() + distRed)) {
-				double distance = approximationModel.getSingleColorSortedBy("Red", middleRed + i).distance(pointToApproximate);
-				if(distance < distRed) {
-					distRed = distance;
-					int red = approximationModel.getSingleColorSortedBy("Red", middleRed + i).getRed();
-					int green = approximationModel.getSingleColorSortedBy("Red", middleRed + i).getGreen();
-					int blue = approximationModel.getSingleColorSortedBy("Red", middleRed + i).getBlue();
-					nearestPoint = new ApproximationPoint(red, green, blue);
-				}
-			}else
-				break;
-		}
-		
-		for(int i = 0; (middleRed - i) >= 0; i++) {
-			if(approximationModel.getSingleColorSortedBy("Red", middleRed - i).getRed() >= (pointToApproximate.getRed() - shortestRange)) {
-				double distance = approximationModel.getSingleColorSortedBy("Red", middleRed - i).distance(pointToApproximate);
-				if(distance < shortestRange) {
-					shortestRange = distance;
-					int red = approximationModel.getSingleColorSortedBy("Red", middleRed - i).getRed();
-					int green = approximationModel.getSingleColorSortedBy("Red", middleRed - i).getGreen();
-					int blue = approximationModel.getSingleColorSortedBy("Red", middleRed - i).getBlue();
-					nearestPoint = new ApproximationPoint(red, green, blue);
-				}
-			}else
-				break;
-		}
-		return nearestPoint;
+		ApproximationPoint nearestPoint = getNearestPoint(redProjection, greenProjection, blueProjection);
+		return nearestPoint;		
 	}
 	
-	private static int binarySearch(int[] values, int searched, int leftEdge, int rightEdge) {
-		int iL = leftEdge;
-		int iR = rightEdge;
+	private static ProjectionResult getRedRange(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
+		int redValueThatHasToBeApproximated = pointToApproximate.getRed();
+		int middleRed = binarySearch("Red", redValueThatHasToBeApproximated, CUT, numberOfAllHistogramColors - 1);
+		ApproximationPoint pointFromBinarySearch = approximationModel.getSingleColorSortedBy("Red", middleRed);
+		
+		double redRange;
+		double distanceToTheLeft, distanceToTheRight;
+		
+		if(lastBinarySearchWasSuccessful()) {
+			redRange = pointFromBinarySearch.distance(pointToApproximate);
+		}else {
+			if(redValueThatHasToBeApproximated < pointFromBinarySearch.getRed()) {
+				distanceToTheLeft = approximationModel.getSingleColorSortedBy("Red", middleRed - 1).distance(pointToApproximate);
+				distanceToTheRight = pointFromBinarySearch.distance(pointToApproximate);
+				middleRed -= 1;
+			}else {
+				distanceToTheLeft = pointFromBinarySearch.distance(pointToApproximate);
+				distanceToTheRight = approximationModel.getSingleColorSortedBy("Red", middleRed + 1).distance(pointToApproximate);
+				middleRed += 1;
+			}			
+			redRange = distanceToTheLeft < distanceToTheRight ? distanceToTheLeft : distanceToTheRight;
+		}
+		return new ProjectionResult(middleRed, redRange, approximationModel.getSingleColorSortedBy("Red", middleRed));
+	}
+	
+	private static ProjectionResult getGreenRange(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
+		int greenValueThatHasToBeApproximated = pointToApproximate.getGreen();
+		int middleGreen = binarySearch("Green", greenValueThatHasToBeApproximated, CUT, numberOfAllHistogramColors - 1);
+		ApproximationPoint pointFromBinarySearch = approximationModel.getSingleColorSortedBy("Green", middleGreen);
+		
+		double greenRange;
+		double distanceToTheLeft, distanceToTheRight;
+		
+		if(lastBinarySearchWasSuccessful()) {
+			greenRange = pointFromBinarySearch.distance(pointToApproximate);
+		}else {
+			if(greenValueThatHasToBeApproximated < pointFromBinarySearch.getGreen()) {
+				distanceToTheLeft = approximationModel.getSingleColorSortedBy("Green", middleGreen - 1).distance(pointToApproximate);
+				distanceToTheRight = pointFromBinarySearch.distance(pointToApproximate);
+				middleGreen -= 1;
+			}else {
+				distanceToTheLeft = pointFromBinarySearch.distance(pointToApproximate);
+				distanceToTheRight = approximationModel.getSingleColorSortedBy("Green", middleGreen + 1).distance(pointToApproximate);
+				middleGreen += 1;
+			}			
+			greenRange = distanceToTheLeft < distanceToTheRight ? distanceToTheLeft : distanceToTheRight;
+		}
+		return new ProjectionResult(middleGreen, greenRange, approximationModel.getSingleColorSortedBy("Green", middleGreen));
+	}
+	
+	private static ProjectionResult getBlueRange(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
+		int blueValueThatHasToBeApproximated = pointToApproximate.getBlue();
+		int middleBlue = binarySearch("Blue", blueValueThatHasToBeApproximated, CUT, numberOfAllHistogramColors - 1);
+		ApproximationPoint pointFromBinarySearch = approximationModel.getSingleColorSortedBy("Blue", middleBlue);
+		
+		double blueRange;
+		double distanceToTheLeft, distanceToTheRight;
+		
+		if(lastBinarySearchWasSuccessful()) {
+			blueRange = pointFromBinarySearch.distance(pointToApproximate);
+		}else {
+			if(blueValueThatHasToBeApproximated < pointFromBinarySearch.getBlue()) {
+				distanceToTheLeft = approximationModel.getSingleColorSortedBy("Blue", middleBlue - 1).distance(pointToApproximate);
+				distanceToTheRight = pointFromBinarySearch.distance(pointToApproximate);
+				middleBlue -= 1;
+			}else {
+				distanceToTheLeft = pointFromBinarySearch.distance(pointToApproximate);
+				distanceToTheRight = approximationModel.getSingleColorSortedBy("Blue", middleBlue + 1).distance(pointToApproximate);
+				middleBlue += 1;
+			}			
+			blueRange = distanceToTheLeft < distanceToTheRight ? distanceToTheLeft : distanceToTheRight;
+		}
+		return new ProjectionResult(middleBlue, blueRange, approximationModel.getSingleColorSortedBy("Blue", middleBlue));
+	}
+	
+	private static ApproximationPoint getNearestPoint(ProjectionResult redProjection, ProjectionResult greenProjection, ProjectionResult blueProjection) {
+		double shortestRange;
+		int nearestRed, nearestGreen, nearestBlue;
+		if(redProjection.getRange() < greenProjection.getRange()) {
+			shortestRange = redProjection.getRange();
+			nearestRed = redProjection.getApproximationPoint().getRed();
+			nearestGreen = redProjection.getApproximationPoint().getGreen();
+			nearestBlue = redProjection.getApproximationPoint().getBlue();
+		}else {
+			shortestRange = greenProjection.getRange();
+			nearestRed = greenProjection.getApproximationPoint().getRed();
+			nearestGreen = greenProjection.getApproximationPoint().getGreen();
+			nearestBlue = greenProjection.getApproximationPoint().getBlue();
+		}
+		if(blueProjection.getRange() < shortestRange) {
+			shortestRange = blueProjection.getRange();
+			nearestRed = blueProjection.getApproximationPoint().getRed();
+			nearestGreen = blueProjection.getApproximationPoint().getGreen();
+			nearestBlue = blueProjection.getApproximationPoint().getBlue();
+		}
+		return new ApproximationPoint(nearestRed, nearestGreen, nearestBlue);
+	}
+	
+	private static int binarySearch(String color, int searched, int leftEdge, int rightEdge) {
+		int tmpLeft = leftEdge;
+		int tmpRight = rightEdge;
 		int middle = 0;
-		while(iL <= iR) {
-			middle = (iL + iR) / 2;
-			final int RES = Integer.compare(values[middle], searched);
-			if(RES == 0) {
+		while(tmpLeft <= tmpRight) {
+			middle = (tmpLeft + tmpRight) / 2;
+			int result = 0; 
+			switch(color) {
+			case "Red":
+				int red = approximationModel.getSingleColorSortedBy("Red", middle).getRed();
+				result = Integer.compare(red, searched);
+				break;
+			case "Green":
+				int green = approximationModel.getSingleColorSortedBy("Green", middle).getGreen();
+				result = Integer.compare(green, searched);
+				break;
+			case "Blue":
+				int blue = approximationModel.getSingleColorSortedBy("Blue", middle).getBlue();
+				result = Integer.compare(blue, searched);
+				break;
+			}
+			if(result == 0) {
 				approximationModel.setValueWasFound(true);
 				return middle;
-			}else if(RES < 0)
-				iL = middle + 1;
+			}else if(result < 0)
+				tmpLeft = middle + 1;
 			else
-				iR = middle - 1;
+				tmpRight = middle - 1;
 		}
 		approximationModel.setValueWasFound(false);
 		return middle;
 	}
 	
-	private static boolean searchedValueIsAvailableInQuantity() {
+	private static boolean lastBinarySearchWasSuccessful() {
 		return approximationModel.valueWasFound();
 	}
 	
