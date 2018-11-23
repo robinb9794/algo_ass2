@@ -11,6 +11,7 @@ import java.util.Vector;
 
 import gui.elements.dialogs.ApproximationWindow;
 import models.ApproximationModel;
+import models.LoadedImage;
 import models.Mode;
 import models.approximation.ApproximationPoint;
 import models.approximation.ColorOccurence;
@@ -32,6 +33,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 			readHistogramColors();
 			sortHistogramColors();
 			initDialog();
+			resetApproximationScreen();
 		}else
 			showErrorDialog("First select at least one image.");
 	}
@@ -84,17 +86,19 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 	private static void initDialog() {
 		approximationWindow = new ApproximationWindow(viewModel);
 		approximationWindow.initElements();
-		addChangeListenerToSlider();
+		addButtonListener();
 		approximationWindow.setLocationRelativeTo(null);
 		approximationWindow.pack();
 		approximationWindow.setVisible(true);
 	}
 	
-	private static void addChangeListenerToSlider() {
+	private static void addButtonListener() {
 		approximationWindow.approximateButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(enteredPercentageIsValid()) {
+					resetApproximationScreen();
+					
 					String text = approximationWindow.textField.getText();
 					double reductionFactor = Double.parseDouble(text) / 100;
 					startApproximation(reductionFactor);
@@ -109,12 +113,18 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		String text = approximationWindow.textField.getText();
 		try {
 			int percentage = Integer.parseInt(text);
-			if(percentage >= 0 && percentage <= 100)
+			if(percentage > 0 && percentage <= 100)
 				return true;
 			return false;
 		}catch(Exception e) {
 			return false;
 		}
+	}
+	
+	private static void resetApproximationScreen() {
+		LoadedImage imageToApproximate = viewModel.getSelectedImages().getFirst();
+		PixelCoordinator.setTargetPixels(imageToApproximate.getGrabbedPixels());
+		approximationWindow.screen.repaint();
 	}
 	
 	private static void startApproximation(double reductionFactor) {
@@ -126,7 +136,10 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		Color approximatedColors;
 		for(int i = 0; i < numberOfColorsToReplace; i++) {
 			colorSortedByNumber = colorsSortedByNumber.elementAt(i);
-			pointToApproximate = new ApproximationPoint(colorSortedByNumber.getRed(), colorSortedByNumber.getGreen(), colorSortedByNumber.getBlue());
+			int red = colorSortedByNumber.getRed();
+			int green = colorSortedByNumber.getGreen();
+			int blue = colorSortedByNumber.getBlue();
+			pointToApproximate = new ApproximationPoint(red, green, blue);
 			approximatedPoint = getApproximatedPoint(numberOfAllHistogramColors, CUT, pointToApproximate);
 			approximatedColors = new Color(approximatedPoint.getRed(), approximatedPoint.getGreen(), approximatedPoint.getBlue());
 			colorSortedByNumber.setColorValues(approximatedColors);
@@ -139,7 +152,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		ProjectionResult greenProjection = getGreenRange(numberOfAllHistogramColors, CUT, pointToApproximate);
 		ProjectionResult blueProjection = getBlueRange(numberOfAllHistogramColors, CUT, pointToApproximate);
 		
-		ApproximationPoint nearestPoint = getNearestPoint(redProjection, greenProjection, blueProjection);
+		ApproximationPoint nearestPoint = getNearestPoint(pointToApproximate, redProjection, greenProjection, blueProjection);
 		return nearestPoint;		
 	}
 	
@@ -218,29 +231,6 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		return new ProjectionResult(middleBlue, blueRange, approximationModel.getSingleColorSortedBy("Blue", middleBlue));
 	}
 	
-	private static ApproximationPoint getNearestPoint(ProjectionResult redProjection, ProjectionResult greenProjection, ProjectionResult blueProjection) {
-		double shortestRange;
-		int nearestRed, nearestGreen, nearestBlue;
-		if(redProjection.getRange() < greenProjection.getRange()) {
-			shortestRange = redProjection.getRange();
-			nearestRed = redProjection.getApproximationPoint().getRed();
-			nearestGreen = redProjection.getApproximationPoint().getGreen();
-			nearestBlue = redProjection.getApproximationPoint().getBlue();
-		}else {
-			shortestRange = greenProjection.getRange();
-			nearestRed = greenProjection.getApproximationPoint().getRed();
-			nearestGreen = greenProjection.getApproximationPoint().getGreen();
-			nearestBlue = greenProjection.getApproximationPoint().getBlue();
-		}
-		if(blueProjection.getRange() < shortestRange) {
-			shortestRange = blueProjection.getRange();
-			nearestRed = blueProjection.getApproximationPoint().getRed();
-			nearestGreen = blueProjection.getApproximationPoint().getGreen();
-			nearestBlue = blueProjection.getApproximationPoint().getBlue();
-		}
-		return new ApproximationPoint(nearestRed, nearestGreen, nearestBlue);
-	}
-	
 	private static int binarySearch(String color, int searched, int leftEdge, int rightEdge) {
 		int tmpLeft = leftEdge;
 		int tmpRight = rightEdge;
@@ -278,6 +268,64 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		return approximationModel.valueWasFound();
 	}
 	
+	private static ApproximationPoint getNearestPoint(ApproximationPoint pointToApproximate, ProjectionResult redProjection, ProjectionResult greenProjection, ProjectionResult blueProjection) {
+		double shortestRange;
+		int nearestRed, nearestGreen, nearestBlue;
+		
+		if(redProjection.getRange() < greenProjection.getRange()) {
+			shortestRange = redProjection.getRange();
+			nearestRed = redProjection.getApproximationPoint().getRed();
+			nearestGreen = redProjection.getApproximationPoint().getGreen();
+			nearestBlue = redProjection.getApproximationPoint().getBlue();
+		}else {
+			shortestRange = greenProjection.getRange();
+			nearestRed = greenProjection.getApproximationPoint().getRed();
+			nearestGreen = greenProjection.getApproximationPoint().getGreen();
+			nearestBlue = greenProjection.getApproximationPoint().getBlue();
+		}
+		if(blueProjection.getRange() < shortestRange) {
+			shortestRange = blueProjection.getRange();
+			nearestRed = blueProjection.getApproximationPoint().getRed();
+			nearestGreen = blueProjection.getApproximationPoint().getGreen();
+			nearestBlue = blueProjection.getApproximationPoint().getBlue();
+		}		
+		
+		ApproximationPoint closerPoint;
+		double tmpDistance;
+		
+		int middleRed = redProjection.getMiddle();
+		
+		for(int i = 1; (middleRed + i) < approximationModel.getColorsSortedBy("Red").size(); i++) {
+			if(approximationModel.getSingleColorSortedBy("Red", middleRed + i).getRed() <= (pointToApproximate.getRed() + shortestRange)) {
+				closerPoint = approximationModel.getSingleColorSortedBy("Red", middleRed + i);
+				tmpDistance = closerPoint.distance(pointToApproximate);
+				if(tmpDistance < shortestRange) {
+					shortestRange = tmpDistance;
+					nearestRed = closerPoint.getRed();
+					nearestGreen = closerPoint.getGreen();
+					nearestBlue = closerPoint.getBlue();
+				}
+			}else
+				break;
+		}
+		
+		for(int i = 0; (middleRed - i) >= 0; i++) {
+			if(approximationModel.getSingleColorSortedBy("Red", i).getRed() >= (pointToApproximate.getRed() - shortestRange)) {
+				closerPoint = approximationModel.getSingleColorSortedBy("Red", middleRed - i);
+				tmpDistance = closerPoint.distance(pointToApproximate);
+				if(tmpDistance < shortestRange) {
+					shortestRange = tmpDistance;
+					nearestRed = closerPoint.getRed();
+					nearestGreen = closerPoint.getGreen();
+					nearestBlue = closerPoint.getBlue();
+				}
+			}else
+				break;
+		}
+		
+		return new ApproximationPoint(nearestRed, nearestGreen, nearestBlue);
+	}
+		
 	private static void setReducedPixels(Vector<ApproximationPoint> colorsSortedByNumber) {
 		for(int i = 0; i < colorsSortedByNumber.size(); i++) {
 			for(int j = 0; j < colorsSortedByNumber.elementAt(i).getColorOccurence().getIndices().size(); j++) {

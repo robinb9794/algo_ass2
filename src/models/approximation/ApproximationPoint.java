@@ -3,7 +3,7 @@ package models.approximation;
 import java.awt.Color;
 
 public class ApproximationPoint  {
-	private int red, green, blue;
+	protected int red, green, blue;
 	private ColorOccurence colorOccurence;
 	
 	public ApproximationPoint() {}
