@@ -29,9 +29,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		if(screenIsLoaded() && userHasSelectedAtLeastOneImage()) {
 			CreateHistogramActionHandler.handle();
 			setCurrentMode(Mode.APPROXIMATION);
-			resetScreenListeners();
-			readHistogramColors();
-			sortHistogramColors();
+			resetScreenListeners();			
 			initDialog();
 			resetApproximationScreen();
 		}else
@@ -98,10 +96,15 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 			public void actionPerformed(ActionEvent e) {
 				if(enteredPercentageIsValid()) {
 					resetApproximationScreen();
-					
+					readHistogramColors();
+					sortHistogramColors();
 					String text = approximationWindow.textField.getText();
 					double reductionFactor = Double.parseDouble(text) / 100;
+					final long START = System.nanoTime();
 					startApproximation(reductionFactor);
+					final long END = System.nanoTime();
+					final double ESTIMATED_TIME = (END - START) / 1_000_000;
+					showInfoDialog("Succuess!", "Completely approximated in " + ESTIMATED_TIME + "ms!");
 					approximationWindow.screen.repaint();
 				}else
 					showErrorDialog("Please enter a number between 0 and 100.");				
@@ -148,15 +151,25 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 	}
 	
 	private static ApproximationPoint getApproximatedPoint(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
-		ProjectionResult redProjection = getRedRange(numberOfAllHistogramColors, CUT, pointToApproximate);
-		ProjectionResult greenProjection = getGreenRange(numberOfAllHistogramColors, CUT, pointToApproximate);
-		ProjectionResult blueProjection = getBlueRange(numberOfAllHistogramColors, CUT, pointToApproximate);
-		
-		ApproximationPoint nearestPoint = getNearestPoint(pointToApproximate, redProjection, greenProjection, blueProjection);
+		ProjectionResult[] projectionResults = getProjectionResults(numberOfAllHistogramColors, CUT, pointToApproximate);		
+		ApproximationPoint nearestPoint = getNearestPoint(numberOfAllHistogramColors, CUT, pointToApproximate, projectionResults);
 		return nearestPoint;		
 	}
 	
-	private static ProjectionResult getRedRange(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
+	private static ProjectionResult[] getProjectionResults(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
+		ProjectionResult redProjection = getRedProjectionResult(numberOfAllHistogramColors, CUT, pointToApproximate);
+		ProjectionResult greenProjection = getGreenProjectionResult(numberOfAllHistogramColors, CUT, pointToApproximate);
+		ProjectionResult blueProjection = getBlueProjectionResult(numberOfAllHistogramColors, CUT, pointToApproximate);
+		
+		ProjectionResult[] projectionResults = new ProjectionResult[3];
+		projectionResults[0] = redProjection;
+		projectionResults[1] = greenProjection;
+		projectionResults[2] = blueProjection;
+		
+		return projectionResults;
+	}
+	
+	private static ProjectionResult getRedProjectionResult(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
 		int redValueThatHasToBeApproximated = pointToApproximate.getRed();
 		int middleRed = binarySearch("Red", redValueThatHasToBeApproximated, CUT, numberOfAllHistogramColors - 1);
 		ApproximationPoint pointFromBinarySearch = approximationModel.getSingleColorSortedBy("Red", middleRed);
@@ -178,10 +191,10 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 			}			
 			redRange = distanceToTheLeft < distanceToTheRight ? distanceToTheLeft : distanceToTheRight;
 		}
-		return new ProjectionResult(middleRed, redRange, approximationModel.getSingleColorSortedBy("Red", middleRed));
+		return new ProjectionResult(middleRed, redRange, pointFromBinarySearch);
 	}
 	
-	private static ProjectionResult getGreenRange(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
+	private static ProjectionResult getGreenProjectionResult(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
 		int greenValueThatHasToBeApproximated = pointToApproximate.getGreen();
 		int middleGreen = binarySearch("Green", greenValueThatHasToBeApproximated, CUT, numberOfAllHistogramColors - 1);
 		ApproximationPoint pointFromBinarySearch = approximationModel.getSingleColorSortedBy("Green", middleGreen);
@@ -203,10 +216,10 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 			}			
 			greenRange = distanceToTheLeft < distanceToTheRight ? distanceToTheLeft : distanceToTheRight;
 		}
-		return new ProjectionResult(middleGreen, greenRange, approximationModel.getSingleColorSortedBy("Green", middleGreen));
+		return new ProjectionResult(middleGreen, greenRange, pointFromBinarySearch);
 	}
 	
-	private static ProjectionResult getBlueRange(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
+	private static ProjectionResult getBlueProjectionResult(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate) {
 		int blueValueThatHasToBeApproximated = pointToApproximate.getBlue();
 		int middleBlue = binarySearch("Blue", blueValueThatHasToBeApproximated, CUT, numberOfAllHistogramColors - 1);
 		ApproximationPoint pointFromBinarySearch = approximationModel.getSingleColorSortedBy("Blue", middleBlue);
@@ -228,7 +241,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 			}			
 			blueRange = distanceToTheLeft < distanceToTheRight ? distanceToTheLeft : distanceToTheRight;
 		}
-		return new ProjectionResult(middleBlue, blueRange, approximationModel.getSingleColorSortedBy("Blue", middleBlue));
+		return new ProjectionResult(middleBlue, blueRange, pointFromBinarySearch);
 	}
 	
 	private static int binarySearch(String color, int searched, int leftEdge, int rightEdge) {
@@ -268,7 +281,11 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		return approximationModel.valueWasFound();
 	}
 	
-	private static ApproximationPoint getNearestPoint(ApproximationPoint pointToApproximate, ProjectionResult redProjection, ProjectionResult greenProjection, ProjectionResult blueProjection) {
+	private static ApproximationPoint getNearestPoint(int numberOfAllHistogramColors, int CUT, ApproximationPoint pointToApproximate, ProjectionResult[] projectionResults) {
+		ProjectionResult redProjection = projectionResults[0];
+		ProjectionResult greenProjection = projectionResults[1];
+		ProjectionResult blueProjection = projectionResults[2];
+		
 		double shortestRange;
 		int nearestRed, nearestGreen, nearestBlue;
 		
@@ -290,38 +307,140 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 			nearestBlue = blueProjection.getApproximationPoint().getBlue();
 		}		
 		
-		ApproximationPoint closerPoint;
-		double tmpDistance;
+		ApproximationPoint pointToCheck;
+		double distanceToCheck = 0;
 		
 		int middleRed = redProjection.getMiddle();
+		int middleGreen = greenProjection.getMiddle();
+		int middleBlue = blueProjection.getMiddle();
 		
-		for(int i = 1; (middleRed + i) < approximationModel.getColorsSortedBy("Red").size(); i++) {
-			if(approximationModel.getSingleColorSortedBy("Red", middleRed + i).getRed() <= (pointToApproximate.getRed() + shortestRange)) {
-				closerPoint = approximationModel.getSingleColorSortedBy("Red", middleRed + i);
-				tmpDistance = closerPoint.distance(pointToApproximate);
-				if(tmpDistance < shortestRange) {
-					shortestRange = tmpDistance;
-					nearestRed = closerPoint.getRed();
-					nearestGreen = closerPoint.getGreen();
-					nearestBlue = closerPoint.getBlue();
+		int i = 1;
+		while(distanceToCheck < shortestRange) {
+			if(middleRed + i < numberOfAllHistogramColors) {
+				pointToCheck = approximationModel.getSingleColorSortedBy("Red", middleRed + i);
+				if(pointToCheck.getRed() <= (pointToApproximate.getRed() + shortestRange)) {
+					distanceToCheck = pointToCheck.distance(pointToApproximate);
+					if(distanceToCheck < shortestRange) {
+						shortestRange = distanceToCheck;
+						nearestRed = pointToCheck.getRed();
+						nearestGreen = pointToCheck.getGreen();
+						nearestBlue = pointToCheck.getBlue();
+					}
+				}else
+					break;
+			}
+			if(middleRed - i >= 0) {
+				pointToCheck = approximationModel.getSingleColorSortedBy("Red", middleRed - i);
+				if(pointToCheck.getRed() >= (pointToApproximate.getRed() - shortestRange)) {
+					distanceToCheck = pointToCheck.distance(pointToApproximate);
+					if(distanceToCheck < shortestRange) {
+						shortestRange = distanceToCheck;
+						nearestRed = pointToCheck.getRed();
+						nearestGreen = pointToCheck.getGreen();
+						nearestBlue = pointToCheck.getBlue();
+					}
+				}else
+					break;
+			}
+			
+			if(middleGreen + i < numberOfAllHistogramColors) {
+				pointToCheck = approximationModel.getSingleColorSortedBy("Green", middleGreen + i);
+				if(pointToCheck.getGreen() <= (pointToApproximate.getGreen() + shortestRange)) {
+					distanceToCheck = pointToCheck.distance(pointToApproximate);
+					if(distanceToCheck < shortestRange) {
+						shortestRange = distanceToCheck;
+						nearestRed = pointToCheck.getRed();
+						nearestGreen = pointToCheck.getGreen();
+						nearestBlue = pointToCheck.getBlue();
+					}
+				}else
+					break;
+			}
+			if(middleGreen - i >= 0) {
+				pointToCheck = approximationModel.getSingleColorSortedBy("Green", middleGreen - i);
+				if(pointToCheck.getGreen() >= (pointToApproximate.getGreen() - shortestRange)) {
+					distanceToCheck = pointToCheck.distance(pointToApproximate);
+					if(distanceToCheck < shortestRange) {
+						shortestRange = distanceToCheck;
+						nearestRed = pointToCheck.getRed();
+						nearestGreen = pointToCheck.getGreen();
+						nearestBlue = pointToCheck.getBlue();
+					}
+				}else
+					break;
+			}
+			
+			if(middleBlue + i < numberOfAllHistogramColors) {
+				pointToCheck = approximationModel.getSingleColorSortedBy("Blue", middleBlue + i);
+				if(pointToCheck.getBlue() <= (pointToApproximate.getBlue() + shortestRange)) {
+					distanceToCheck = pointToCheck.distance(pointToApproximate);
+					if(distanceToCheck < shortestRange) {
+						shortestRange = distanceToCheck;
+						nearestRed = pointToCheck.getRed();
+						nearestGreen = pointToCheck.getGreen();
+						nearestBlue = pointToCheck.getBlue();
+					}
+				}else
+					break;
+			}
+			if(middleBlue - i >= 0) {
+				pointToCheck = approximationModel.getSingleColorSortedBy("Blue", middleBlue - i);
+				if(pointToCheck.getBlue() >= (pointToApproximate.getBlue() - shortestRange)) {
+					distanceToCheck = pointToCheck.distance(pointToApproximate);
+					if(distanceToCheck < shortestRange) {
+						shortestRange = distanceToCheck;
+						nearestRed = pointToCheck.getRed();
+						nearestGreen = pointToCheck.getGreen();
+						nearestBlue = pointToCheck.getBlue();
+					}
+				}else
+					break;
+			}
+		}
+		
+		
+		/*
+		for(int i = middleRed + 1; i < numberOfAllHistogramColors; i++) {
+			pointToCheck = approximationModel.getSingleColorSortedBy("Red", i);
+			if(pointToCheck.getRed() <= (pointToApproximate.getRed() + shortestRange) ) {
+				distanceToCheck = pointToCheck.distance(pointToApproximate);
+				if(distanceToCheck < shortestRange) {
+					shortestRange = distanceToCheck;
+					nearestRed = pointToCheck.getRed();
+					nearestGreen = pointToCheck.getGreen();
+					nearestBlue = pointToCheck.getBlue();
 				}
 			}else
 				break;
 		}
 		
-		for(int i = 0; (middleRed - i) >= 0; i++) {
-			if(approximationModel.getSingleColorSortedBy("Red", i).getRed() >= (pointToApproximate.getRed() - shortestRange)) {
-				closerPoint = approximationModel.getSingleColorSortedBy("Red", middleRed - i);
-				tmpDistance = closerPoint.distance(pointToApproximate);
-				if(tmpDistance < shortestRange) {
-					shortestRange = tmpDistance;
-					nearestRed = closerPoint.getRed();
-					nearestGreen = closerPoint.getGreen();
-					nearestBlue = closerPoint.getBlue();
+		for(int i = CUT; i < numberOfAllHistogramColors; i++) {
+			pointToCheck = approximationModel.getSingleColorSortedBy("Green", i);
+			if(pointToCheck.getGreen() <= (pointToApproximate.getGreen() + shortestRange) && pointToCheck.getGreen() >= (pointToApproximate.getGreen() - shortestRange)) {				
+				distanceToCheck = pointToCheck.distance(pointToApproximate);
+				if(distanceToCheck < shortestRange) {
+					shortestRange = distanceToCheck;
+					nearestRed = pointToCheck.getRed();
+					nearestGreen = pointToCheck.getGreen();
+					nearestBlue = pointToCheck.getBlue();
 				}
 			}else
 				break;
 		}
+		
+		for(int i = CUT; i < numberOfAllHistogramColors; i++) {
+			pointToCheck = approximationModel.getSingleColorSortedBy("Blue", i);
+			if(pointToCheck.getBlue() <= (pointToApproximate.getBlue() + shortestRange) && pointToCheck.getBlue() >= (pointToApproximate.getBlue() - shortestRange)) {				
+				distanceToCheck = pointToCheck.distance(pointToApproximate);
+				if(distanceToCheck < shortestRange) {
+					shortestRange = distanceToCheck;
+					nearestRed = pointToCheck.getRed();
+					nearestGreen = pointToCheck.getGreen();
+					nearestBlue = pointToCheck.getBlue();
+				}
+			}else
+				break;
+		}*/
 		
 		return new ApproximationPoint(nearestRed, nearestGreen, nearestBlue);
 	}

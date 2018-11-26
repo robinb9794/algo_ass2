@@ -48,7 +48,7 @@ public class ApproximationWindow extends JDialog{
 		textField.setPreferredSize(new Dimension(50, 25));
 		panel.add(textField);
 		
-		this.approximateButton = new JButton("Approximate");
+		this.approximateButton = new JButton("Find new colors!");
 		panel.add(approximateButton);
 		
 		add(BorderLayout.SOUTH, panel);
