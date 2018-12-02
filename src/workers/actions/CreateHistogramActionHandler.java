@@ -8,16 +8,41 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import interfaces.LoadingScreen;
 import models.approximation.ColorOccurence;
 import workers.PixelCoordinator;
 import workers.SuperUserInteractionHandler;
 
 public class CreateHistogramActionHandler extends SuperUserInteractionHandler {
+	private static LoadingScreen loadingScreen;
+	private static boolean histogramHasBeenCreated;
+	
 	public static void handle() {
-		if(screenIsLoaded() && userHasSelectedAtLeastOneImage())
+		if(screenIsLoaded() && userHasSelectedAtLeastOneImage()) {
+			loadingScreen = (LoadingScreen) guiElementFactory.getGUIElement("LoadingWindow");
+			initLoadingScreen();
 			createHistogram();
+		}			
 		else
 			showErrorDialog("First load and select at least one image.");
+	}
+	
+	private static void initLoadingScreen() {
+		new Thread() {
+			@Override
+			public void run() {
+				try {
+					loadingScreen.setValues("Creating ./histogram.txt", "Histogram has been created!");
+					loadingScreen.init();
+					while(!histogramHasBeenCreated) {
+						Thread.sleep(50);
+					}
+					loadingScreen.closeScreen();
+				}catch(Exception ex) {
+					ex.printStackTrace();
+				}	
+			}
+		}.start();
 	}
 	
 	private static void createHistogram() {
@@ -47,7 +72,7 @@ public class CreateHistogramActionHandler extends SuperUserInteractionHandler {
 				writer.write(rgb + "," + colorOccurence.occurenceToString() + "\n");
 			}
 			writer.close();
-			showInfoDialog("Success!", "./histogram.txt has been created!");
+			histogramHasBeenCreated = true;
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

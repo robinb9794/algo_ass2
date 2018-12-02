@@ -4,6 +4,8 @@ import java.util.Map.Entry;
 
 import javax.swing.JOptionPane;
 
+import factories.FactoryProducer;
+import factories.SuperFactory;
 import interfaces.View;
 import interfaces.buttons.ButtonField;
 import models.LoadedImage;
@@ -15,12 +17,14 @@ import models.math.Vector;
 public class SuperUserInteractionHandler {
 	protected static ViewModel viewModel;
 	protected static View gui;
+	protected static SuperFactory guiElementFactory;
 	
 	protected static boolean isFading;	
 		
 	public static void init(ViewModel viewModel, View gui) {
 		SuperUserInteractionHandler.viewModel = viewModel;
 		SuperUserInteractionHandler.gui = gui;
+		guiElementFactory = FactoryProducer.getFactory("GUIElement");
 		isFading = false;		
 	}
 	

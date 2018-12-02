@@ -3,6 +3,7 @@ package gui.elements.menu;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import interfaces.GUIElement;
@@ -32,7 +33,7 @@ public class ImageChooser extends JFileChooser implements GUIElement{
 		if (returnValue == JFileChooser.APPROVE_OPTION) {
 			File[] selectedFiles = getSelectedFiles();
 			if(alreadyLoadedImages()) {
-				addMoreImages(selectedFiles);
+				JOptionPane.showMessageDialog(null, "Already loaded images!", "Error!", JOptionPane.ERROR_MESSAGE);
 			}
 			else {
 				viewModel.setSelectedFiles(selectedFiles);
