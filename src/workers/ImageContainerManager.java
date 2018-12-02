@@ -49,14 +49,14 @@ public class ImageContainerManager extends GUIManager {
 			if(file.isDirectory()) {
 				File[] filesFromDirectory = file.listFiles();
 				handleFiles(filesFromDirectory);
-			}else if(fileIsImage(file)){
+			}else if(fileIsWantedImageFormat(file)){
 				handleImage(file);
 			}
 		}	
 	}
 	
-	private static boolean fileIsImage(File file) {
-		return file.getPath().endsWith("png") || file.getPath().endsWith("jpg");
+	private static boolean fileIsWantedImageFormat(File file) {
+		return file.getPath().endsWith("gif") || file.getPath().endsWith("jpg");
 	}
 	
 	public static void handleImage(File selectedFile) {

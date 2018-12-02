@@ -116,7 +116,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 		String text = approximationWindow.textField.getText();
 		try {
 			int percentage = Integer.parseInt(text);
-			if(percentage > 0 && percentage <= 100)
+			if(percentage > 0 && percentage < 100)
 				return true;
 			return false;
 		}catch(Exception e) {
@@ -341,8 +341,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 					}
 				}else
 					break;
-			}
-			
+			}			
 			if(middleGreen + i < numberOfAllHistogramColors) {
 				pointToCheck = approximationModel.getSingleColorSortedBy("Green", middleGreen + i);
 				if(pointToCheck.getGreen() <= (pointToApproximate.getGreen() + shortestRange)) {
@@ -368,8 +367,7 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 					}
 				}else
 					break;
-			}
-			
+			}			
 			if(middleBlue + i < numberOfAllHistogramColors) {
 				pointToCheck = approximationModel.getSingleColorSortedBy("Blue", middleBlue + i);
 				if(pointToCheck.getBlue() <= (pointToApproximate.getBlue() + shortestRange)) {
@@ -398,57 +396,14 @@ public class ApproximationActionHandler extends SuperUserInteractionHandler{
 			}
 		}
 		
-		
-		/*
-		for(int i = middleRed + 1; i < numberOfAllHistogramColors; i++) {
-			pointToCheck = approximationModel.getSingleColorSortedBy("Red", i);
-			if(pointToCheck.getRed() <= (pointToApproximate.getRed() + shortestRange) ) {
-				distanceToCheck = pointToCheck.distance(pointToApproximate);
-				if(distanceToCheck < shortestRange) {
-					shortestRange = distanceToCheck;
-					nearestRed = pointToCheck.getRed();
-					nearestGreen = pointToCheck.getGreen();
-					nearestBlue = pointToCheck.getBlue();
-				}
-			}else
-				break;
-		}
-		
-		for(int i = CUT; i < numberOfAllHistogramColors; i++) {
-			pointToCheck = approximationModel.getSingleColorSortedBy("Green", i);
-			if(pointToCheck.getGreen() <= (pointToApproximate.getGreen() + shortestRange) && pointToCheck.getGreen() >= (pointToApproximate.getGreen() - shortestRange)) {				
-				distanceToCheck = pointToCheck.distance(pointToApproximate);
-				if(distanceToCheck < shortestRange) {
-					shortestRange = distanceToCheck;
-					nearestRed = pointToCheck.getRed();
-					nearestGreen = pointToCheck.getGreen();
-					nearestBlue = pointToCheck.getBlue();
-				}
-			}else
-				break;
-		}
-		
-		for(int i = CUT; i < numberOfAllHistogramColors; i++) {
-			pointToCheck = approximationModel.getSingleColorSortedBy("Blue", i);
-			if(pointToCheck.getBlue() <= (pointToApproximate.getBlue() + shortestRange) && pointToCheck.getBlue() >= (pointToApproximate.getBlue() - shortestRange)) {				
-				distanceToCheck = pointToCheck.distance(pointToApproximate);
-				if(distanceToCheck < shortestRange) {
-					shortestRange = distanceToCheck;
-					nearestRed = pointToCheck.getRed();
-					nearestGreen = pointToCheck.getGreen();
-					nearestBlue = pointToCheck.getBlue();
-				}
-			}else
-				break;
-		}*/
-		
 		return new ApproximationPoint(nearestRed, nearestGreen, nearestBlue);
 	}
 		
 	private static void setReducedPixels(Vector<ApproximationPoint> colorsSortedByNumber) {
 		for(int i = 0; i < colorsSortedByNumber.size(); i++) {
-			for(int j = 0; j < colorsSortedByNumber.elementAt(i).getColorOccurence().getIndices().size(); j++) {
-				int index = colorsSortedByNumber.elementAt(i).getColorOccurence().getIndices().elementAt(j);
+			Vector<Integer> colorIndices = colorsSortedByNumber.elementAt(i).getColorOccurence().getIndices();
+			for(int j = 0; j < colorIndices.size(); j++) {
+				int index = colorIndices.elementAt(j);
 				int pixel = colorsSortedByNumber.elementAt(i).toRGB();
 				PixelCoordinator.setSingleTargetPixel(index, pixel);
 			}
